@@ -1,0 +1,1 @@
+# Implemetntasi Tensorflow untuk deteksi barang melalui kamera
