@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+    <link rel="stylesheet" href="style.css">
+    <title>Video Detection</title>
+</head>
+
+<body>
+    <div class="container">
+        <video id="video" autoplay muted></video>
+        <div class="detail">
+            <h1>Possible things are:</h1>
+            <ul id="detect"></ul>
+        </div>
+        <div class="webcam">
+            <button class="btn" onclick="start()">Start Webcam</button>
+            <button class="btn" onclick="StopWebCam()">Stop Webcam</button>
+        </div>
+    </div>
+    <script>
+        const video = document.getElementById("video");
+        const detect = async () => {
+            const det = document.getElementById("detect");
+            det.innerHTML = ``; // Clear previous results
+            const model = await mobilenet.load();
+            setInterval(async () => {
+                const predictions = await model.classify(video);
+                console.log(predictions)
+                det.innerHTML = ''; // Clear previous results
+                predictions.forEach(prediction => {
+                    det.innerHTML += `<li>${prediction.className} - ${(prediction.probability * 100).toFixed(2)}%</li>`;
+                });
+            }, 1000); // Run detection every second
+        };
+
+        const StopWebCam = () => {
+            const stream = video.srcObject;
+            const tracks = stream?.getTracks();
+            tracks?.forEach(track => track.stop());
+            video.srcObject = null;
+        };
+
+        const start = () => {
+            const constraints = {
+                video: {
+                    width: { ideal: window.innerWidth },
+                    height: { ideal: window.innerHeight },
+                }
+            };
+            navigator.mediaDevices
+                .getUserMedia(constraints)
+                .then(stream => {
+                    video.srcObject = stream;
+                    video.addEventListener('loadeddata', detect);
+                })
+                .catch(error => {
+                    console.log("Error starting webcam:", error);
+                });
+        };
+    </script>
+</body>
+
+</html>
